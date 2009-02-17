@@ -8,7 +8,6 @@
 */
 #define GIC_REAL        float
 #define GIC_INTEGER     int
-#define GIC_INTEGER8    long long
 #define GIC_RECORD      int          /* ignore non-std g77 for now */
 
 
@@ -19,53 +18,57 @@ struct gicFile
 {
   FILE *File;
   int WrongOrder;
+  int Nrec;
 };
 
-
+/*
+//  The different order here is for 32-bit/64-bit alignment.
+*/
 struct gicManifest
 {
   char name[256];
-  GIC_REAL OmegaB;
-  GIC_REAL OmegaX;
-  GIC_REAL OmegaL;
-  GIC_REAL OmegaN;
-  GIC_REAL h100;
-  GIC_REAL DeltaX;
-  GIC_REAL nS;
-  GIC_REAL sigma8;
-  GIC_REAL kPivot;
+  float OmegaB;
+  float OmegaX;
+  float OmegaL;
+  float OmegaN;
+  float h100;
+  float dx;
+  float ns;
+  float s8;
+  float kp;
 };
 
 
 struct gicFileHeader
 {
-  GIC_REAL     aBegin;
-  GIC_REAL     DeltaDC;
-  GIC_INTEGER  Nx;
-  GIC_INTEGER  Ny;
-  GIC_INTEGER  Nz;
-  GIC_INTEGER  seed;
-  GIC_INTEGER  Nrec;
-  GIC_INTEGER8 Ntot;
-  GIC_INTEGER  Lmax;
+  long Ntot;
+  float aBegin;
+  float DeltaDC;
+  int dims[3];
+  int seed;
+  int Nrec;
+  int Lmax;
 };
 
 
 struct gicLevelHeader
 {
-  GIC_INTEGER  L;
-  GIC_INTEGER  Lmax;
-  GIC_INTEGER8 Nlev;
-  GIC_REAL     Mlev;
-  GIC_INTEGER  ind;
-  GIC_INTEGER  Nx;
+  long Nlev;
+  float Mlev;
+  int L;
+  int Lmax;
+  int ind;
 };
 
   
 int gicReadManifest(struct gicFile *f, struct gicManifest *manifest);
 int gicReadFileHeader(struct gicFile *f, struct gicFileHeader *header);
 int gicReadLevelHeader(struct gicFile *f, struct gicLevelHeader *header);
-int gicReadFortranRecordReal(struct gicFile *f, int Nrec, GIC_REAL* buffer);
-int gicReadFortranRecordIntg(struct gicFile *f, int Nrec, GIC_INTEGER* buffer);
+
+int gicReadFortranRecordReal(struct gicFile *f, GIC_REAL* buffer);
+int gicReadFortranRecordInteger(struct gicFile *f, GIC_INTEGER *buffer);
+
+int gicSkipFortranRecordReal(struct gicFile *f);
+int gicSkipFortranRecordInteger(struct gicFile *f);
 
 #endif  /* __GIC_READER_H__ */

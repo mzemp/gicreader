@@ -2,31 +2,39 @@
 //  Helper functions for reading GIC files
 */
 #include <stdio.h>
+#include <string.h>
 
 
 #include "gic_reader.h"
 
 
+#define GIC_INTG        GIC_INTEGER  /* just showing off */
+#define GIC_INT8        long long    /* ignore non-std g77 for now */
+
+
 /*
 //  Helper macros
 */
-#define SWAP_BYTES(val) gicSwapBytes((char *)&(val),sizeof(val))
+#define SWAP(val)   gicSwapBytes((char *)&(val),sizeof(val))
+
+#define SET(type,val)   val = *((type *)((wrong_order ? gicSwapBytes(buffer,sizeof(type)) : buffer ))); buffer += sizeof(type)
 
 
 /*
 //  Helper functions
 */
-void gicSwapBytes(char *buffer, int size)
+char* gicSwapBytes(char *buffer, int size)
 {
   int i;
   char tmp;
-                                                                                
+                                                                               
   for(i=0; i<size/2; i++)
     {
       tmp = buffer[i];
       buffer[i] = buffer[size - i - 1];
       buffer[size - i - 1] = tmp;
     }
+  return buffer;
 }
 
 
@@ -48,16 +56,16 @@ int gicReadRecordHelper(FILE *f, long size, void* buffer, int *wrong_order)
   else
     {
       *wrong_order = 1;
-      SWAP_BYTES(s1);
+      SWAP(s1);
       if(s1 != size) return 1;
     }
 
   if(fread(buffer,size,1,f) != 1) return 1;
 
   if(fread(&s2,sizeof(GIC_RECORD),1,f) != 1) return 1;
-  if(wrong_order)
+  if(*wrong_order)
     {
-      SWAP_BYTES(s2);
+      SWAP(s2);
       if(s2 != size) return 1;
     }
 
@@ -71,31 +79,34 @@ int gicReadRecordHelper(FILE *f, long size, void* buffer, int *wrong_order)
 int gicReadManifest(struct gicFile *f, struct gicManifest *manifest)
 {
   int i, ret, wrong_order;
+  const int size = 256 + 9*sizeof(GIC_REAL);
+  long InternalBuffer[size/sizeof(long)+1];
+  char *buffer = (char *)InternalBuffer;
 
   if(f==NULL || manifest == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,sizeof(struct gicManifest),manifest,&wrong_order);
+  ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
   if(ret != 0) return ret;
 
   f->WrongOrder = wrong_order;
+  f->Nrec = 0;
 
-  if(f->WrongOrder)
-    {
-      SWAP_BYTES(manifest->OmegaB);
-      SWAP_BYTES(manifest->OmegaX);
-      SWAP_BYTES(manifest->OmegaL);
-      SWAP_BYTES(manifest->OmegaN);
-      SWAP_BYTES(manifest->h100);
-      SWAP_BYTES(manifest->DeltaX);
-      SWAP_BYTES(manifest->nS);
-      SWAP_BYTES(manifest->sigma8);
-      SWAP_BYTES(manifest->kPivot);
-    }
-
-  /* Convert the job name */ 
+  memcpy(manifest->name,buffer,256);
   i = 255;
   while(i>=0 && manifest->name[i] == ' ') i--;
   manifest->name[i+1] = 0;
+
+  buffer += 256;
+
+  SET(GIC_REAL,manifest->OmegaB);
+  SET(GIC_REAL,manifest->OmegaX);
+  SET(GIC_REAL,manifest->OmegaL);
+  SET(GIC_REAL,manifest->OmegaN);
+  SET(GIC_REAL,manifest->h100);
+  SET(GIC_REAL,manifest->dx);
+  SET(GIC_REAL,manifest->ns);
+  SET(GIC_REAL,manifest->s8);
+  SET(GIC_REAL,manifest->kp);
 
   return 0;
 }
@@ -104,25 +115,27 @@ int gicReadManifest(struct gicFile *f, struct gicManifest *manifest)
 int gicReadFileHeader(struct gicFile *f, struct gicFileHeader *header)
 {
   int ret, wrong_order;
+  const int size = 8 + 2*sizeof(GIC_REAL) + 6*sizeof(GIC_INTEGER);
+  long InternalBuffer[size/sizeof(long)+1];
+  char *buffer = (char *)InternalBuffer;
 
   if(f==NULL || header == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,sizeof(struct gicFileHeader),header,&wrong_order);
+  ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
 
-  if(f->WrongOrder)
-    {
-      SWAP_BYTES(header->aBegin);
-      SWAP_BYTES(header->DeltaDC);
-      SWAP_BYTES(header->Nx);
-      SWAP_BYTES(header->Ny);
-      SWAP_BYTES(header->Nz);
-      SWAP_BYTES(header->seed);
-      SWAP_BYTES(header->Nrec);
-      SWAP_BYTES(header->Ntot);
-      SWAP_BYTES(header->Lmax);
-    }
+  SET(GIC_REAL,header->aBegin);
+  SET(GIC_REAL,header->DeltaDC);
+  SET(GIC_INTG,header->dims[0]);
+  SET(GIC_INTG,header->dims[1]);
+  SET(GIC_INTG,header->dims[2]);
+  SET(GIC_INTG,header->seed);
+  SET(GIC_INTG,header->Nrec);
+  SET(GIC_INT8,header->Ntot);
+  SET(GIC_INTG,header->Lmax);
+
+  f->Nrec = header->Nrec;
 
   return 0;
 }
@@ -131,60 +144,81 @@ int gicReadFileHeader(struct gicFile *f, struct gicFileHeader *header)
 int gicReadLevelHeader(struct gicFile *f, struct gicLevelHeader *header)
 {
   int ret, wrong_order;
+  const int size = 8 + 2*sizeof(GIC_REAL) + 6*sizeof(GIC_INTEGER);
+  long InternalBuffer[size/sizeof(long)+1];
+  char *buffer = (char *)InternalBuffer;
 
   if(f==NULL || header == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,sizeof(struct gicLevelHeader),header,&wrong_order);
+  ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
 
-  if(f->WrongOrder)
-    {
-      SWAP_BYTES(header->L);
-      SWAP_BYTES(header->Lmax);
-      SWAP_BYTES(header->Nlev);
-      SWAP_BYTES(header->Mlev);
-      SWAP_BYTES(header->ind);
-    }
+  SET(GIC_INTG,header->L);
+  SET(GIC_INTG,header->Lmax);
+  SET(GIC_INT8,header->Nlev);
+  SET(GIC_REAL,header->Mlev);
+  SET(GIC_INTG,header->ind);
 
   return 0;
 }
 
 
-int gicReadFortranRecordReal(struct gicFile *f, int Nrec, GIC_REAL *buffer)
+int gicReadFortranRecordReal(struct gicFile *f, GIC_REAL *buffer)
 {
   int i, ret, wrong_order;
 
   if(f==NULL || buffer == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,Nrec*sizeof(GIC_REAL),buffer,&wrong_order);
+  ret = gicReadRecordHelper(f->File,f->Nrec*sizeof(GIC_REAL),buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
 
   if(f->WrongOrder)
     {
-      for(i=0; i<Nrec; i++) SWAP_BYTES(buffer[i]);
+      for(i=0; i<f->Nrec; i++) SWAP(buffer[i]);
     }
 
   return 0;
 }
 
 
-int gicReadFortranRecordIntg(struct gicFile *f, int Nrec, GIC_INTEGER* buffer)
+int gicReadFortranRecordInteger(struct gicFile *f, GIC_INTEGER *buffer)
 {
   int i, ret, wrong_order;
 
   if(f==NULL || buffer == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,Nrec*sizeof(GIC_INTEGER),buffer,&wrong_order);
+  ret = gicReadRecordHelper(f->File,f->Nrec*sizeof(GIC_INTEGER),buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
 
   if(f->WrongOrder)
     {
-      for(i=0; i<Nrec; i++) SWAP_BYTES(buffer[i]);
+      for(i=0; i<f->Nrec; i++) SWAP(buffer[i]);
     }
 
   return 0;
 }
+
+
+int gicSkipFortranRecordReal(struct gicFile *f)
+{
+  if(f == NULL) return -1;
+
+  if(fseek(f->File,f->Nrec*sizeof(GIC_REAL)+2*sizeof(GIC_RECORD),SEEK_CUR) != 0) return 2;
+
+  return 0;
+}
+
+
+int gicSkipFortranRecordInteger(struct gicFile *f)
+{
+  if(f == NULL) return -1;
+
+  if(fseek(f->File,f->Nrec*sizeof(GIC_INTEGER)+2*sizeof(GIC_RECORD),SEEK_CUR) != 0) return 2;
+
+  return 0;
+}
+
 
