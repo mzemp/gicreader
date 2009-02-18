@@ -68,6 +68,10 @@ int gicReadLevelHeader(struct gicFile *f, struct gicLevelHeader *header);
 int gicReadFortranRecordReal(struct gicFile *f, GIC_REAL* buffer);
 int gicReadFortranRecordInteger(struct gicFile *f, GIC_INTEGER *buffer);
 
+int gicSkipFortranRecordManifest(struct gicFile *f);
+int gicSkipFortranRecordFileHeader(struct gicFile *f);
+int gicSkipFortranRecordLevelHeader(struct gicFile *f);
+
 int gicSkipFortranRecordReal(struct gicFile *f);
 int gicSkipFortranRecordInteger(struct gicFile *f);
 
