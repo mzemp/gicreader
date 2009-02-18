@@ -144,7 +144,7 @@ int gicReadFileHeader(struct gicFile *f, struct gicFileHeader *header)
 int gicReadLevelHeader(struct gicFile *f, struct gicLevelHeader *header)
 {
   int ret, wrong_order;
-  const int size = 8 + 2*sizeof(GIC_REAL) + 6*sizeof(GIC_INTEGER);
+  const int size = 8 + 1*sizeof(GIC_REAL) + 3*sizeof(GIC_INTEGER);
   long InternalBuffer[size/sizeof(long)+1];
   char *buffer = (char *)InternalBuffer;
 
@@ -153,7 +153,7 @@ int gicReadLevelHeader(struct gicFile *f, struct gicLevelHeader *header)
   ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
-
+  
   SET(GIC_INTG,header->L);
   SET(GIC_INTG,header->Lmax);
   SET(GIC_INT8,header->Nlev);
