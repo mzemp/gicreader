@@ -202,36 +202,6 @@ int gicReadFortranRecordInteger(struct gicFile *f, GIC_INTEGER *buffer)
 }
 
 
-int gicSkipFortranRecordManifest(struct gicFile *f)
-{
-  if(f == NULL) return -1;
-
-  if(fseek(f->File,sizeof(struct gicManifest)+2*sizeof(GIC_RECORD),SEEK_CUR) != 0) return 2;
-
-  return 0;
-}
-
-
-int gicSkipFortranRecordFileHeader(struct gicFile *f)
-{
-  if(f == NULL) return -1;
-
-  if(fseek(f->File,sizeof(struct gicFileHeader)+2*sizeof(GIC_RECORD),SEEK_CUR) != 0) return 2;
-
-  return 0;
-}
-
-
-int gicSkipFortranRecordLevelHeader(struct gicFile *f)
-{
-  if(f == NULL) return -1;
-
-  if(fseek(f->File,sizeof(struct gicLevelHeader)+2*sizeof(GIC_RECORD),SEEK_CUR) != 0) return 2;
-
-  return 0;
-}
-
-
 int gicSkipFortranRecordReal(struct gicFile *f)
 {
   if(f == NULL) return -1;
