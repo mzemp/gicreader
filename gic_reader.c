@@ -57,8 +57,8 @@ int gicReadRecordHelper(FILE *f, long size, void* buffer, int *wrong_order)
     {
       *wrong_order = 1;
       SWAP(s1);
-      if(s1 != size) return 1;
     }
+  if(s1 != size) return 1;
 
   if(fread(buffer,size,1,f) != 1) return 1;
 
@@ -66,8 +66,8 @@ int gicReadRecordHelper(FILE *f, long size, void* buffer, int *wrong_order)
   if(*wrong_order)
     {
       SWAP(s2);
-      if(s2 != size) return 1;
     }
+  if(s2 != size) return 1;
 
   return 0;
 }
@@ -79,13 +79,12 @@ int gicReadRecordHelper(FILE *f, long size, void* buffer, int *wrong_order)
 int gicReadManifest(struct gicFile *f, struct gicManifest *manifest)
 {
   int i, ret, wrong_order;
-  const int size = 256 + 9*sizeof(GIC_REAL);
-  long InternalBuffer[size/sizeof(long)+1];
+  long InternalBuffer[GIC_MANIFEST_SIZE/sizeof(long)+1];
   char *buffer = (char *)InternalBuffer;
 
   if(f==NULL || manifest == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
+  ret = gicReadRecordHelper(f->File,GIC_MANIFEST_SIZE,buffer,&wrong_order);
   if(ret != 0) return ret;
 
   f->WrongOrder = wrong_order;
@@ -115,13 +114,12 @@ int gicReadManifest(struct gicFile *f, struct gicManifest *manifest)
 int gicReadFileHeader(struct gicFile *f, struct gicFileHeader *header)
 {
   int ret, wrong_order;
-  const int size = 8 + 2*sizeof(GIC_REAL) + 6*sizeof(GIC_INTEGER);
-  long InternalBuffer[size/sizeof(long)+1];
+  long InternalBuffer[GIC_FILEHEADER_SIZE/sizeof(long)+1];
   char *buffer = (char *)InternalBuffer;
 
   if(f==NULL || header == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
+  ret = gicReadRecordHelper(f->File,GIC_FILEHEADER_SIZE,buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
 
@@ -144,16 +142,15 @@ int gicReadFileHeader(struct gicFile *f, struct gicFileHeader *header)
 int gicReadLevelHeader(struct gicFile *f, struct gicLevelHeader *header)
 {
   int ret, wrong_order;
-  const int size = 8 + 1*sizeof(GIC_REAL) + 3*sizeof(GIC_INTEGER);
-  long InternalBuffer[size/sizeof(long)+1];
+  long InternalBuffer[GIC_LEVELHEADER_SIZE/sizeof(long)+1];
   char *buffer = (char *)InternalBuffer;
 
   if(f==NULL || header == NULL) return -1;
 
-  ret = gicReadRecordHelper(f->File,size,buffer,&wrong_order);
+  ret = gicReadRecordHelper(f->File,GIC_LEVELHEADER_SIZE,buffer,&wrong_order);
   if(f->WrongOrder != wrong_order) ret = -3;
   if(ret != 0) return ret;
-  
+
   SET(GIC_INTG,header->L);
   SET(GIC_INTG,header->Lmax);
   SET(GIC_INT8,header->Nlev);

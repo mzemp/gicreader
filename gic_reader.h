@@ -10,6 +10,10 @@
 #define GIC_INTEGER     int
 #define GIC_RECORD      int          /* ignore non-std g77 for now */
 
+#define GIC_MANIFEST_SIZE   (256+9*sizeof(GIC_REAL))
+#define GIC_FILEHEADER_SIZE   (8+2*sizeof(GIC_REAL)+6*sizeof(GIC_INTEGER))
+#define GIC_LEVELHEADER_SIZE   (8+1*sizeof(GIC_REAL)+3*sizeof(GIC_INTEGER))
+
 
 /*
 //  Helper classes
