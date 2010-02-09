@@ -1,6 +1,7 @@
 # Makefile for gic_reader functions
 
-BASE	= gic_reader
+NAME	= gic_reader
+SOURCES = gic_reader.c
 VERSION = 1.0
 
 CC	= gcc
@@ -9,12 +10,15 @@ LIBS	=
 
 # Rules
 
-all:	$(BASE).h Makefile
-	$(CC) $(CFLAGS) -c -o $(BASE).o $(BASE).c
-	ar rcs lib$(BASE).a $(BASE).o
+gic_reader: $(SOURCES:.c=.o) $(SOURCES:.c=.h) Makefile
+	ar rcs lib$(NAME).a $(SOURCES:.c=.o) $(LIBS)
 
 clean:
 	-rm -f *~ *.o *.a
 
+install:
+	cd ../include; ln -sf ../$(NAME)/$(NAME).h .
+	cd ../lib; ln -sf ../$(NAME)/lib$(NAME).a .
+
 tar:
-	cd ..; tar cvf - $(BASE)/*.c $(BASE)/*.h $(BASE)/Makefile > $(BASE)-$(VERSION).tar
+	cd ..; tar cvf - $(NAME)/*.c $(NAME)/*.h $(NAME)/Makefile > $(NAME)-$(VERSION).tar
