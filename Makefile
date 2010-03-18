@@ -5,7 +5,7 @@ SOURCES = gic_reader.c
 VERSION = 1.0
 
 CC	= gcc
-CFLAGS	= -O3 -Wall
+CFLAGS	= -O3 -mcmodel=medium -Wall
 LIBS	=
 
 # Rules
