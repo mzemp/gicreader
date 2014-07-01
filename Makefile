@@ -1,24 +1,24 @@
-# Makefile for gic_reader functions
+# Makefile for artsfc library
 
-NAME	= gic_reader
-SOURCES = gic_reader.c
-VERSION = 1.0
+NAME	= gicreader
+VERSION	= $(shell git describe --tags --long)
 
-CC	= gcc
-CFLAGS	= -O3 -mcmodel=medium -Wall -pedantic
+CC		= gcc
+CFLAGS	= -O3 -mcmodel=medium -Wall -pedantic -I$(LOCAL_LIB_PATH)/include
 LIBS	=
+
+SRCS	= $(wildcard *.c)
+INCS	= $(wildcard *.h)
+OBJS	= $(SRCS:.c=.o)
 
 # Rules
 
-gic_reader: $(SOURCES:.c=.o) $(SOURCES:.c=.h) Makefile
-	ar rcs lib$(NAME).a $(SOURCES:.c=.o) $(LIBS)
+$(NAME): $(OBJS) $(INCS) Makefile
+	ar rcs lib$(NAME).a $(OBJS) $(LIBS)
 
 clean:
-	-rm -f *~ *.o *.a
+	rm -f *~ *.o *.a
 
 install:
 	cd ../include; ln -sf ../$(NAME)/$(NAME).h .
 	cd ../lib; ln -sf ../$(NAME)/lib$(NAME).a .
-
-tar:
-	cd ..; tar cvf - $(NAME)/*.c $(NAME)/*.h $(NAME)/Makefile > $(NAME)-$(VERSION).tar
