@@ -4,7 +4,7 @@ NAME	= gicreader
 VERSION	= $(shell git describe --tags --long)
 
 CC		= gcc
-CFLAGS	= -O3 -mcmodel=medium -Wall -pedantic -I$(LOCAL_LIB_PATH)/include
+CFLAGS	= -O3 -mcmodel=medium -Wall -pedantic
 LIBS	=
 
 SRCS	= $(wildcard *.c)
