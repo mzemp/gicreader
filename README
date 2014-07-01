@@ -1,0 +1,38 @@
+DESCRIPTION
+
+This is a library containing some reading and helper functions for the GIC format.
+
+
+AUTHORS
+
+Nick Gnedin <gnedin@fnal.gov> (original code)
+Marcel Zemp <marcelzemp@gmail.com> (adaption into a library)
+
+
+OFFICIAL SOURCE
+
+GitHub: https://github.com/mzemp/gicreader
+
+
+DEPENDENCIES
+
+None.
+
+
+COMPILATION & INSTALLATION
+
+First, clone or download the code from GitHub. In order to compile the code, just type make in the gicreader code directory:
+
+$> make
+
+This will generate a static library file called libgicreader.a. Other code can then be linked against this library.
+
+In order to clean up the code, type:
+
+$> make clean
+
+Assuming that the gicreader code directory is located within a local library directory (e.g. ~/libraries/ under your home directory) you can type:
+
+$> make install
+
+in the code directory. This will then generate symbolic links to the gicreader.h and libgicreader.a in the parallel directories ~/libraries/include/ and ~/libraries/lib/, respectively.
