@@ -4,9 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-
-#include "gic_reader.h"
-
+#include "gicreader.h"
 
 #define GIC_INTG        GIC_INTEGER  /* just showing off */
 #define GIC_INT8        long long    /* ignore non-std g77 for now */
@@ -217,5 +215,3 @@ int gicSkipFortranRecordInteger(struct gicFile *f)
 
   return 0;
 }
-
-
