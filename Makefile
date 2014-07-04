@@ -1,4 +1,4 @@
-# Makefile for artsfc library
+# Makefile for gicreader library
 
 NAME	= gicreader
 VERSION	= $(shell git describe --tags --long)
